@@ -1,0 +1,92 @@
+/*You have 2 arduinos communicate using IIC, one is master, another one is slave.
+Each arduino is connected to a button and a LED.
+When the button at the master side is pressed, the LED at the slave side lights up.
+When the button at the slave side is pressed, the LED at the master side lights up.*/
+
+//Master code
+#include <Wire.h>
+
+const byte MY_ADDRESS = 25;
+const byte SLAVE_ADDRESS = 42;
+const byte LED = 4;
+const byte button = 5;
+int c=0;
+
+void setup()
+  {
+  Wire.begin (MY_ADDRESS);
+  Wire.onReceive (receiveEvent);
+  pinMode (LED, OUTPUT);
+  pinMode (button, INPUT);
+  }  // end of setup
+
+void loop()
+  {
+    byte x=0;
+      if(digitalRead(button))
+        x=1;
+
+    Wire.beginTransmission (SLAVE_ADDRESS);
+    Wire.write (x);
+    Wire.endTransmission ();
+    if(c==1)
+    {
+       digitalWrite(LED,HIGH);
+       delay(200);
+    }
+    else
+      digitalWrite(LED,LOW);
+  }  // end of loop
+
+void receiveEvent (int howMany)
+ {
+ while(Wire.available()) // loop through all but the last
+ {
+    c = Wire.read();
+ }
+
+} // end of receiveEvent
+
+//Slave code
+#include <Wire.h>
+
+const byte MY_ADDRESS = 25;
+const byte SLAVE_ADDRESS = 42;
+const byte LED = 4;
+const byte button = 5;
+int c=0;
+
+void setup()
+  {
+  Wire.begin (SLAVE_ADDRESS);
+  Wire.onReceive (receiveEvent);
+  pinMode (LED, OUTPUT);
+  pinMode (button, INPUT);
+  }  // end of setup
+
+void loop()
+  {
+    byte x=0;
+      if(digitalRead(button))
+        x=1;
+
+    Wire.beginTransmission (MY_ADDRESS);
+    Wire.write (x);
+    Wire.endTransmission ();
+    if(c==1)
+    {
+       digitalWrite(LED,HIGH);
+       delay(200);
+    }
+    else
+      digitalWrite(LED,LOW);
+  }  // end of loop
+
+void receiveEvent (int howMany)
+ {
+ while(Wire.available()) // loop through all but the last
+ {
+    c = Wire.read();
+ }
+
+} // end of receiveEvent

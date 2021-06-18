@@ -1,0 +1,100 @@
+//+https://www.tinkercad.com/things/7OKXD2HTSMT-fabulous-fyyran/editel?sharecode=orELFcbmalizg9PHzLDCOpqHDFUe2J5a3xZtL-o51Pk
+//Master
+#include <Wire.h>
+
+char c[7];
+double num;
+void setup() {
+  Wire.begin();        // join i2c bus (address optional for master)
+  Serial.begin(9600);  // start serial for output
+}
+
+void loop() {
+  first_slave();
+  second_slave();
+}
+void first_slave()
+{
+  Wire.requestFrom(8, 7);    // request 7 bytes from slave device #8
+
+  while (Wire.available()) { // slave may send less than requested
+    for(int i=0;i<7;i++){
+      c[i] = Wire.read();
+    }
+
+    Serial.print("The ldr voltage is: ");   //Print the value of ldr voltage
+    for(int i=0;i<7;i++){
+    Serial.print(c[i]);
+    }
+    Serial.println();
+  }
+  delay(1000);
+}
+
+void second_slave()
+{
+  Wire.beginTransmission(9);
+  Wire.write(c);
+  Wire.endTransmission();
+}
+
+
+//Slave 1
+#include <Wire.h>
+# define ldrpin A0
+
+double f_val = 0.0;
+char outstr[15];
+bool state = false;
+
+void setup() {
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onRequest(requestEvent); // register event
+  pinMode(ldrpin,INPUT);
+}
+
+void loop() {
+
+}
+
+void requestEvent() {
+
+   f_val=analogRead(ldrpin);
+
+   dtostrf(f_val,7,2,outstr); // save data in array and convert to string
+   Wire.write(outstr);
+}
+
+
+//Slave 2
+#include <Wire.h>
+#define ledpin 3
+char ldrvalue[7];
+double num;
+
+void setup() {
+  Wire.begin(9);                // join i2c bus with address #9
+  Wire.onRecieve(ReceiveEvent); // register event
+  pinMode(ledpin,OUTPUT);
+}
+
+void loop() {
+
+}
+
+void receiveEvent (int howMany)
+ {
+  for (int i = 0; i < howMany; i++)
+    {
+    ldrvalue[i]= Wire.read ();
+    }
+    num=atof(ldrvalue); //convert data in array to double
+    if(num>100)
+    {
+      digitalWrite (LED,HIGH);
+    }
+    else
+    {
+       digitalWrite (LED,LOW);
+    }
+}
